@@ -9,4 +9,4 @@ Le transizioni dipendono unicamente dallo stato delle celle vicine in quella gen
 * Qualsiasi cella viva con più di tre celle vive adiacenti muore, come per effetto di sovrappopolazione;
 * Qualsiasi cella morta con esattamente tre celle vive adiacenti diventa una cella viva, come per effetto di riproduzione.
 
-![Alt Text] (https://github.com/ACupito/Game_of_life_PCPC/blob/main/images/Gol-gun.gif)
+![] (Gol-gun.gif)
