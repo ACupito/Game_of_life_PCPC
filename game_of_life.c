@@ -12,7 +12,7 @@
  */
 
 //check per verificare se la cella è viva o meno
-bool isAlive(bool cell)
+bool is_alive(bool cell)
 {
     return cell == 1;
 }
@@ -21,7 +21,7 @@ bool isAlive(bool cell)
 void game_update(bool *receive_buffer, bool *updated_buffer, int cell_index, int count)
 {
     //se la cella è viva applico le regole del gioco
-    if (isAlive(receive_buffer[cell_index]))
+    if (is_alive(receive_buffer[cell_index]))
     {
         if (count < 2)
             updated_buffer[cell_index] = 0;
@@ -196,16 +196,16 @@ int main(int argc, char *argv[])
                     for (int active_col = j - 1; active_col < j + 2; active_col++)
                     {
                         if (active_col > -1 && active_col < col)
-                            count = isAlive(top_row[active_col]) ? count + 1 : count;
+                            count = is_alive(top_row[active_col]) ? count + 1 : count;
                     }
 
                     //valuto il vicino sinistro
                     if (j > 0)
-                        count = isAlive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+                        count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
 
                     //valuto il vicino destro
                     if (j < col - 1)
-                        count = isAlive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;;
+                        count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;;
 
                     //caso in cui ho soltanto una riga, non voglio che entri
                     if (i != rowsNumber - 1)
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
                         for (int active_col = j - 1; active_col < j + 2; active_col++)
                         {
                             if (active_col > -1 && active_col < col)
-                                count = isAlive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
+                                count = is_alive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
                         }
                     }
                 }
@@ -225,22 +225,22 @@ int main(int argc, char *argv[])
                     for (int active_col = j - 1; active_col < j + 2; active_col++)
                     {
                         if (active_col > -1 && active_col < col)
-                            count = isAlive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
+                            count = is_alive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
                     }
 
                     //valuto il vicino sinistro
                     if (j > 0)
-                        count = isAlive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+                        count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
 
                     //valuto il vicino destro
                     if (j < col - 1)
-                        count = isAlive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
+                        count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
 
                     //valuto la row bottom
                     for (int active_col = j - 1; active_col < j + 2; active_col++)
                     {
                         if (active_col > -1 && active_col < col)
-                            count = isAlive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
+                            count = is_alive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
                     }
                 }
 
@@ -254,23 +254,23 @@ int main(int argc, char *argv[])
                         for (int active_col = j - 1; active_col < j + 2; active_col++)
                         {
                             if (active_col > -1 && active_col < col)
-                                count = isAlive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
+                                count = is_alive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
                         }
 
                         //valuto il vicino sinistro
                         if (j > 0)
-                            count = isAlive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+                            count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
 
                         //valuto il vicino destro
                         if (j < col - 1)
-                            count = isAlive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
+                            count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
                     }
 
                     //valuto la ghost row bottom
                     for (int active_col = j - 1; active_col < j + 2; active_col++)
                     {
                         if (active_col > -1 && active_col < col)
-                            count = isAlive(bottom_row[active_col]) ? count + 1 : count;
+                            count = is_alive(bottom_row[active_col]) ? count + 1 : count;
                     }
                 }
 
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
             {
                 for (int j = 0; j < col; j++)
                 {
-                    isAlive(matrix[i * col + j]) ? printf("\u25FC") : printf("\u25FB");
+                    is_alive(matrix[i * col + j]) ? printf("\u25FC") : printf("\u25FB");
                 }
                 printf("\n");
             }
