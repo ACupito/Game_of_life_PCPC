@@ -12,3 +12,17 @@ Le transizioni dipendono unicamente dallo stato delle celle vicine in quella gen
 <p align="center">
     <img src="https://github.com/ACupito/Game_of_life_PCPC/blob/main/images/Gol-gun.gif"/>
 </p>
+
+# Come compilare ed eseguire?
+Per compilare il codice .c non sono necessari particolari sforzi. Eseguire il seguente comando:
+
+```
+mpicc game_of_life.c -o game_of_life.out
+```
+
+Per eseguire il file compilato è necessario eseguire il seguente comando:
+
+```
+mpirun -np {VCPUs} game_of_life.out {righe} {colonne} {generazioni}
+
+# Descrizione della soluzione adottata
