@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
             }
         }
 
+        //stampa della matrice iniziale
         for (int i = 0; i < row; i++)
         {
             for (int j = 0; j < col; j++)
@@ -149,6 +150,7 @@ int main(int argc, char *argv[])
     //se sono l'ultimo processo il mio successore è rank 0 altrimenti rank + 1
     next = (my_rank + 1) == comm_size ? 0 : my_rank + 1;
 
+    //eseguo tante volte quante sono le generazioni 
     while (steps < generations)
     {
         //invio ad ogni processo le righe che gli spettano per il calcolo
@@ -157,6 +159,7 @@ int main(int argc, char *argv[])
         //numero di righe per processo
         int rowsNumber = send_counts[my_rank];
 
+        //se predecessore e successore sono diversi 
         if (prev != next)
         {
             //invio la prima riga della matrice ricevuta al mio predecessore
@@ -166,10 +169,11 @@ int main(int argc, char *argv[])
         }
         else
         {
-            //nel caso di un solo processo devo invertire prima e ultima riga da inviare
+            //nel caso di uno o due processi devo invertire prima e ultima riga da inviare
             MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, prev, 1, MPI_COMM_WORLD, &top_request);
             MPI_Isend(rec_buf, 1, life_row, next, 1, MPI_COMM_WORLD, &bottom_request);
         }
+
         //prendo l'ultima riga del predecessore
         MPI_Recv(top_row, col, life_row, prev, 1, MPI_COMM_WORLD, &status);
         //prendo la prima riga del successore
@@ -181,10 +185,9 @@ int main(int argc, char *argv[])
             //per ogni colonna
             for (int j = 0; j < col; j++)
             {
-
+                //sono nella cella
                 //conto quante celle vive vicine ci sono per ogni cella
                 int count = 0;
-                //qua dentro sto nella cella
 
                 //se sto nella prima riga devo considerare la ghost row ottenuta dal predecessore
                 if (i == 0)
@@ -271,6 +274,7 @@ int main(int argc, char *argv[])
                     }
                 }
 
+                //applico le regole del gioco
                 game_update(rec_buf, updated_buf, i * col + j, count);
             }
         }
@@ -279,7 +283,7 @@ int main(int argc, char *argv[])
         //gather per ricombinare la matrice, prendo gli elementi dal buffer aggiornato e ricostruisco matrix
         MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, MPI_COMM_WORLD);
 
-        //stampa semplice per verificare la corretta suddivisione della matrice
+        //stampa ad ogni generazione della matrice ottenuta
         if (my_rank == 0)
         {
             for (int i = 0; i < row; i++)
@@ -293,6 +297,7 @@ int main(int argc, char *argv[])
             printf("\n");
         }
 
+        //incremento il numero di step
         steps++;
     }
 
