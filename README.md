@@ -24,5 +24,6 @@ Per eseguire il file compilato è necessario eseguire il seguente comando:
 
 ```
 mpirun -np {VCPUs} game_of_life.out {righe} {colonne} {generazioni}
+```
 
 # Descrizione della soluzione adottata
