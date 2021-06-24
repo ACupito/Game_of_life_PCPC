@@ -301,12 +301,19 @@ int main(int argc, char *argv[])
         steps++;
     }
 
-    MPI_Finalize();
-    free(matrix);
     free(rec_buf);
     free(updated_buf);
     free(top_row);
     free(bottom_row);
     free(send_counts);
     free(displacements);
+
+    MPI_Finalize();
+
+    //la matrix iniziale viene inizializzata soltanto dal master, il quale procederà con la free
+    if(my_rank == 0){
+        free(matrix);
+    }
+
+    return 0;
 }
