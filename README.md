@@ -27,6 +27,8 @@ mpirun -np {VCPUs} game_of_life.out {righe} {colonne} {generazioni}
 ```
 
 ## Descrizione della soluzione adottata
+
+### Funzioni definite
 Iniziamo con il definire in particolare quelle che saranno le funzioni principali definite per Game of Life. In particolare esse definiscono la logica del gioco in relazione alla presenza di celle vive o morte.
 
 ### is_alive(bool)
@@ -85,4 +87,59 @@ void game_update(bool *receive_buffer, bool *updated_buffer, int cell_index, int
             updated_buffer[cell_index] = 0;
     }
 }
+```
+
+### Main
+Procediamo la descrizione con la spiegazione del codice main definito per Game of Life. 
+Iniziamo con la presentazione delle variabili usate per il programma.
+
+```c
+int main(int argc, char *argv[])
+{
+    //rank e size del comunicatore
+    int my_rank = 0;
+    int comm_size = 0;
+
+    //valori per la matrice
+    bool *matrix; //la considero come un array per semplicità nelle operazioni
+    int row = atoi(argv[1]);
+    int col = atoi(argv[2]);
+
+    //generazioni da eseguire
+    int generations = atoi(argv[3]); //generazione specificate in input
+
+    //valori per calcolare le porzioni da inviare
+    int steps = 0;      //numero di generazioni da eseguire
+    int numElem = 0;    //numero di elementi da inviare per processo
+    int rest = 0;       //se c'è resto invio degli elementi in più ai processi finchè il resto è diverso da 0
+    int *send_counts;   //array contenente il numero di elementi da inviare per ogni processo
+    int *displacements; //calcolo lo spostamento relativo al buffer da inviare con la scatterv
+    int count = 0;      //utile per calcolare il displacement
+    bool *rec_buf;      //buffer in ricezione per la scatterv
+    bool *updated_buf;  //buffer aggiornato dopo lo step di gioco
+    bool *top_row;      //prima riga da inviare al predecessore
+    bool *bottom_row;   //ultima riga da inviare al successore
+    int prev;           //valore del predecessore
+    int next;           //valore del successore
+
+    MPI_Request top_request, bottom_request; //request per invio della prima e ultima riga
+    MPI_Status status;
+    MPI_Datatype life_row;
+
+}
+```
+
+Continuiamo con l'inizializzazione dell'ambiente MPI. Specificando ed ottenento il numero di processi in esecuzione (`comm_size`) e il rank del processo in esecuzione (`my_rank`).
+
+```c
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+```
+
+Successivamente dichiaro un tipo MPI contigous derivato chiamato life_row. Fondamentale per inviare direttamente ai processi le righe da manipolare. Tale tipo si compone di "numero di colonne" elementi di tipo `bool`. Infine si esegue il commit.
+
+```c
+MPI_Type_contiguous(col, MPI_C_BOOL, &life_row);
+MPI_Type_commit(&life_row);
 ```
