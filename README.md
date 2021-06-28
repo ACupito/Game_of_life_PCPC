@@ -143,3 +143,17 @@ Successivamente dichiaro un tipo MPI contigous derivato chiamato life_row. Fonda
 MPI_Type_contiguous(col, MPI_C_BOOL, &life_row);
 MPI_Type_commit(&life_row);
 ```
+DA COMPLETARE
+
+## Verifica della correttezza
+Al fine di dimostrare la correttezza della soluzione proposta, si è fatto uso di un pattern fisso per l'inizializzazione della matrice; in modo da verificare che l'output rimanga invariato al variare del numeri di processi che si utilizza.
+
+<center><img src="images/matrice_iniziale.png" height="200" /></center>
+
+Fissato il numero di iterazioni pari a 1, un numero di righe pari a 6 e un numero di colonne apri a 10 si è fatto eseguire il codice sia su algoritmo sequenziale che su algoritmo parallelo con 2, 3 e 4 processi.
+
+| Sequenziale | 2 processi | 3 processi | 4 processi |
+| --- | --- | --- | --- |
+| <img src="images/Sequenziale.png" height="200" /> | <img src="images/2processi.png" height="200" /> | <img src="images/3processi.png" height="200" /> | <img src="images/4processi.png" height="200" /> |
+
+Come è evidente il risultato è il medesimo nonostante la variazione sul numero di processi in uso.
