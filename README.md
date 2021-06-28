@@ -143,7 +143,123 @@ Successivamente dichiaro un tipo MPI contigous derivato chiamato life_row. Fonda
 MPI_Type_contiguous(col, MPI_C_BOOL, &life_row);
 MPI_Type_commit(&life_row);
 ```
-DA COMPLETARE
+
+A tal punto il processo MASTER (rank 0) inizializza la matrice e la popola in maniera pseudocasuale. Tramite la random verrà generato un numero compreso tra 0 e 1:
+- se la cella è viva il suo valore è 1
+- se la cella è morta il suo valore è 0
+
+```c
+//inizializzo il seed della rand
+srand(time(NULL) + my_rank);
+
+if (my_rank == 0)
+{
+    matrix = calloc(row * col, sizeof(bool));
+
+    //inizializzo randomicamente la matrice, con valori 0 o 1 per ogni celle
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            matrix[i * col + j] = rand() % 2;
+        }
+    }
+
+    //stampa della matrice iniziale
+    for (int i = 0; i < row; i++
+    {
+        for (int j = 0; j < col; j++)
+        {
+            (matrix[i * col + j]) ? printf("\u25FC") : printf("\u25FB");
+        }
+        printf("\n");
+    }
+}
+```
+
+Calcolo il numero di righe da assegnare ad ogni processo. La divisione viene effettuata distribuendo le righe in maniera equa tra tutti i processi in uso; nel caso in cui la divisione tra il numero di righe e il numero di processi abbia un resto r, allora i primi r processi avranno una riga in più rispetto ai restanti `comm_size` - r.
+
+```c
+numElem = row / comm_size;
+rest = row % comm_size;
+
+send_counts = calloc(comm_size, sizeof(int));
+displacements = calloc(comm_size, sizeof(int));
+
+//assegno ad ogni processo il numero corretto di elementi ed incremento lo spostamento
+for (int i = 0; i < comm_size; i++)
+{
+     send_counts[i] = numElem;
+
+     if (rest > 0)
+     {
+     send_counts[i]++;
+     rest--;
+     }
+
+     displacements[i] = count;
+     count += send_counts[i];
+}
+```
+
+Procediamo con l'inizializzazione delle risorse che sfrutteremo in seguito.
+
+```c
+//alloco la memoria per i buffer da inviare ai vari processi
+rec_buf = calloc(send_counts[my_rank] * col, sizeof(bool));
+updated_buf = calloc(send_counts[my_rank] * col, sizeof(bool));
+top_row = calloc(col, sizeof(bool));
+bottom_row = calloc(col, sizeof(bool));
+```
+
+La soluzione proposta è concepita per lavorare in maniera toroidale, ciò implica che la prima riga valuterà come ghost row superiore l'ultima riga della matrice e, viceversa, l'ultima riga valuterà come ghost row inferiore la prima riga. 
+In base a ciò è necessario calcolare i predecessori ed i successori dei processi al fine di inviare correttamente le righe.
+
+```c
+//se sono il processo 0 allora il mio predecessore è il processo con rank ultimo altrimenti rank - 1 
+prev = (my_rank == 0) ? comm_size - 1 : my_rank - 1;
+
+//se sono l'ultimo processo il mio successore è rank 0 altrimenti rank + 1
+next = (my_rank + 1) == comm_size ? 0 : my_rank + 1;
+```
+
+A tal punto iniziamo un ciclp che si ripete un numero di volte pari al numero di generazioni specificate in input
+
+```c
+//eseguo tante volte quante sono le generazioni 
+    while (steps < generations)
+    {
+        //logica di gioco
+    }
+```
+
+```c
+//invio ad ogni processo le righe che gli spettano per il calcolo
+MPI_Scatterv(matrix, send_counts, displacements, life_row, rec_buf, send_counts[my_rank], life_row, 0, MPI_COMM_WORLD);
+
+//numero di righe per processo
+int rowsNumber = send_counts[my_rank];
+
+//se predecessore e successore sono diversi 
+if (prev != next)
+{
+    //invio la prima riga della matrice ricevuta al mio predecessore
+    MPI_Isend(rec_buf, 1, life_row, prev, 1, MPI_COMM_WORLD, &top_request);
+    //invio l'ultima riga al mio successore
+    MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, next, 1, MPI_COMM_WORLD, &bottom_request)
+} 
+else
+{
+    //nel caso di uno o due processi devo invertire prima e ultima riga da inviare
+    MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, prev, 1, MPI_COMM_WORLD, &top_request);
+    MPI_Isend(rec_buf, 1, life_row, next, 1, MPI_COMM_WORLD, &bottom_request);
+}
+
+//prendo l'ultima riga del predecessore
+MPI_Recv(top_row, col, life_row, prev, 1, MPI_COMM_WORLD, &status);
+//prendo la prima riga del successore
+MPI_Recv(bottom_row, col, life_row, next, 1, MPI_COMM_WORLD, &status);
+```
 
 ## Verifica della correttezza
 Al fine di dimostrare la correttezza della soluzione proposta, si è fatto uso di un pattern fisso per l'inizializzazione della matrice; in modo da verificare che l'output rimanga invariato al variare del numeri di processi che si utilizza.
