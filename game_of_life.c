@@ -49,9 +49,22 @@ int main(int argc, char *argv[])
     bool *matrix; //la considero come un array per semplicità nelle operazioni
     int row = atoi(argv[1]);
     int col = atoi(argv[2]);
+    
+    /* Matrice usata per la verifica della correttezza
+     * bool matrix[60] = {0,0,0,0,0,0,
+     *                   0,0,0,1,1,0,
+     *                   0,0,0,0,1,0,
+     *                   0,0,0,0,0,0,
+     *                   0,0,0,0,0,0,
+     *                   0,0,0,1,1,0,
+     *                   0,0,1,1,0,0,
+     *                   0,0,0,0,0,1,
+     *                   0,0,0,0,1,0,
+     *                   0,0,0,0,0,0};
+     */
 
     //generazioni da eseguire
-    int generations = atoi(argv[3]); //generazione specificate in input
+    int generations = atoi(argv[3]); //generazione specificate in input 
 
     //valori per calcolare le porzioni da inviare
     int steps = 0;      //numero di generazioni da eseguire
@@ -81,8 +94,7 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
     //inizializzo il seed della rand
-    //srand(time(NULL) + my_rank);
-    srand(5);
+    srand(time(NULL) + my_rank);
 
     if (my_rank == 0)
     {
