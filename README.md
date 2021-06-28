@@ -266,7 +266,7 @@ Al fine di dimostrare la correttezza della soluzione proposta, si è fatto uso d
 
 <center><img src="images/matrice_iniziale.png" height="200" /></center>
 
-Fissato il numero di iterazioni pari a 1, un numero di righe pari a 6 e un numero di colonne apri a 10 si è fatto eseguire il codice sia su algoritmo sequenziale che su algoritmo parallelo con 2, 3 e 4 processi.
+Fissato il numero di iterazioni pari a 1, un numero di righe pari a 6 e un numero di colonne pari a 10 si è fatto eseguire il codice sia su algoritmo sequenziale che su algoritmo parallelo con 2, 3 e 4 processi.
 
 | Sequenziale | 2 processi | 3 processi | 4 processi |
 | --- | --- | --- | --- |
