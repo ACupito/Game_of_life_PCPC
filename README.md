@@ -223,16 +223,17 @@ prev = (my_rank == 0) ? comm_size - 1 : my_rank - 1;
 next = (my_rank + 1) == comm_size ? 0 : my_rank + 1;
 ```
 
-A tal punto iniziamo un ciclp che si ripete un numero di volte pari al numero di generazioni specificate in input
+A tal punto iniziamo un ciclo che si ripete un numero di volte pari al numero di generazioni specificate in input
 
 ```c
 //eseguo tante volte quante sono le generazioni 
-    while (steps < generations)
-    {
-        //logica di gioco
-    }
+while (steps < generations)
+{
+    //logica di gioco
+}
 ```
 
+QUI DESCRIVO COME VIENE EFFETTUATA LA DISTRIBUZIONE DELLE RIGHE
 ```c
 //invio ad ogni processo le righe che gli spettano per il calcolo
 MPI_Scatterv(matrix, send_counts, displacements, life_row, rec_buf, send_counts[my_rank], life_row, 0, MPI_COMM_WORLD);
@@ -261,6 +262,131 @@ MPI_Recv(top_row, col, life_row, prev, 1, MPI_COMM_WORLD, &status);
 MPI_Recv(bottom_row, col, life_row, next, 1, MPI_COMM_WORLD, &status);
 ```
 
+DESCRIZIONE DELL'ALGORITMO PER VALUTARE LE CELLE
+```c
+//per ogni riga che ho
+        for (int i = 0; i < rowsNumber; i++)
+        {
+            //per ogni colonna
+            for (int j = 0; j < col; j++)
+            {
+                //sono nella cella
+                //conto quante celle vive vicine ci sono per ogni cella
+                int count = 0;
+
+                //se sto nella prima riga devo considerare la ghost row ottenuta dal predecessore
+                if (i == 0)
+                {
+                    //considero la ghost row top
+                    for (int active_col = j - 1; active_col < j + 2; active_col++)
+                    {
+                        if (active_col > -1 && active_col < col)
+                            count = is_alive(top_row[active_col]) ? count + 1 : count;
+                    }
+
+                    //valuto il vicino sinistro
+                    if (j > 0)
+                        count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+
+                    //valuto il vicino destro
+                    if (j < col - 1)
+                        count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;;
+
+                    //caso in cui ho soltanto una riga, non voglio che entri
+                    if (i != rowsNumber - 1)
+                    {
+                        //considero la riga sottostante
+                        for (int active_col = j - 1; active_col < j + 2; active_col++)
+                        {
+                            if (active_col > -1 && active_col < col)
+                                count = is_alive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
+                        }
+                    }
+                }
+
+                if (i > 0 && i < rowsNumber - 1)
+                {
+                    //considero la riga in top
+                    for (int active_col = j - 1; active_col < j + 2; active_col++)
+                    {
+                        if (active_col > -1 && active_col < col)
+                            count = is_alive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
+                    }
+
+                    //valuto il vicino sinistro
+                    if (j > 0)
+                        count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+
+                    //valuto il vicino destro
+                    if (j < col - 1)
+                        count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
+
+                    //valuto la row bottom
+                    for (int active_col = j - 1; active_col < j + 2; active_col++)
+                    {
+                        if (active_col > -1 && active_col < col)
+                            count = is_alive(rec_buf[(i + 1) * col + active_col]) ? count + 1 : count;
+                    }
+                }
+
+                //nell'ultima considero la ghost ricevuta dal successore
+                if (i == rowsNumber - 1)
+                {
+                    //caso in cui ho soltanto una riga, non voglio che entri
+                    if (i != 0)
+                    {
+                        //considero la riga in top
+                        for (int active_col = j - 1; active_col < j + 2; active_col++)
+                        {
+                            if (active_col > -1 && active_col < col)
+                                count = is_alive(rec_buf[(i - 1) * col + active_col]) ? count + 1 : count;
+                        }
+
+                        //valuto il vicino sinistro
+                        if (j > 0)
+                            count = is_alive(rec_buf[i * col + (j - 1)]) ? count + 1 : count;
+
+                        //valuto il vicino destro
+                        if (j < col - 1)
+                            count = is_alive(rec_buf[i * col + (j + 1)]) ? count + 1 : count;
+                    }
+
+                    //valuto la ghost row bottom
+                    for (int active_col = j - 1; active_col < j + 2; active_col++)
+                    {
+                        if (active_col > -1 && active_col < col)
+                            count = is_alive(bottom_row[active_col]) ? count + 1 : count;
+                    }
+                }
+
+                //applico le regole del gioco
+                game_update(rec_buf, updated_buf, i * col + j, count);
+            }
+        }
+```
+
+GATHER PER RICOMBINARE LA MATRICE CON GLI AGGIORNAMENTI EFFETTUATI NELLE GENERAZIONE
+```c
+//gather per ricombinare la matrice, prendo gli elementi dal buffer aggiornato e ricostruisco matrix
+MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, MPI_COMM_WORLD);
+```
+
+LIBERO LO SPAZIO ALLOCATO
+```c
+free(rec_buf);
+free(updated_buf);
+free(top_row);
+free(bottom_row);
+free(send_counts);
+free(displacements);
+
+MPI_Finalize();
+
+//la matrix iniziale viene inizializzata soltanto dal master, il quale procederà con la free
+if(my_rank == 0){
+    free(matrix);
+}
+```
 ## Verifica della correttezza
 Al fine di dimostrare la correttezza della soluzione proposta, si è fatto uso di un pattern fisso per l'inizializzazione della matrice; in modo da verificare che l'output rimanga invariato al variare del numeri di processi che si utilizza.
 
