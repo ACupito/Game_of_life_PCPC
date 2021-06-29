@@ -233,7 +233,8 @@ while (steps < generations)
 }
 ```
 
-QUI DESCRIVO COME VIENE EFFETTUATA LA DISTRIBUZIONE DELLE RIGHE
+All'interno del ciclo, per prima cosa, si distibuisce la matrice creata tra i processi tramite una `ScatterV`. Successivamente ogni processo invia in maniera non bloccante (`Isend`) la sua prima riga al predecessore e la sua ultima riga al successore. E' bene notare che in caso di uno o due processi le righe inviate dovranno essere inverite al fine di evitare errori in fase di analisi. 
+
 ```c
 //invio ad ogni processo le righe che gli spettano per il calcolo
 MPI_Scatterv(matrix, send_counts, displacements, life_row, rec_buf, send_counts[my_rank], life_row, 0, MPI_COMM_WORLD);
@@ -262,7 +263,10 @@ MPI_Recv(top_row, col, life_row, prev, 1, MPI_COMM_WORLD, &status);
 MPI_Recv(bottom_row, col, life_row, next, 1, MPI_COMM_WORLD, &status);
 ```
 
-DESCRIZIONE DELL'ALGORITMO PER VALUTARE LE CELLE
+Il seguente blocco di codice è il cuore pulsante della soluzione, si va a scorrere la sotto-matrice che ogni processo ha ricevuto andando a valutare ogni cella in relazione con i suoi vicini. Da sottolineare che per la prima e ultima riga è importante considerare le ghost rows ricevute dagli altri processi.
+Nello specifico, per ogni cella i processi controllano se le celle intorno ad essa sono vive e in caso affermativo, viene incrementata una variabile `count`.
+Al termine della valutazione, si valuta lo stato della cella attraverso la funzione `game_update` descritta in precedenza.
+
 ```c
 //per ogni riga che ho
         for (int i = 0; i < rowsNumber; i++)
@@ -365,13 +369,15 @@ DESCRIZIONE DELL'ALGORITMO PER VALUTARE LE CELLE
         }
 ```
 
-GATHER PER RICOMBINARE LA MATRICE CON GLI AGGIORNAMENTI EFFETTUATI NELLE GENERAZIONE
+Al termine della computazione delle celle è necessario invocare una `Gatherv` al fine di ricombinare la matrice con i risultati della generazione.
+
 ```c
 //gather per ricombinare la matrice, prendo gli elementi dal buffer aggiornato e ricostruisco matrix
 MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, MPI_COMM_WORLD);
 ```
 
-LIBERO LO SPAZIO ALLOCATO
+Una volte usciti dal ciclo, si libera la memoria, si attende che tutti i processi portino a termine il lavoro e si termina l'esecuzione.
+
 ```c
 free(rec_buf);
 free(updated_buf);
@@ -387,6 +393,7 @@ if(my_rank == 0){
     free(matrix);
 }
 ```
+
 ## Verifica della correttezza
 Al fine di dimostrare la correttezza della soluzione proposta, si è fatto uso di un pattern fisso per l'inizializzazione della matrice; in modo da verificare che l'output rimanga invariato al variare del numeri di processi che si utilizza.
 
