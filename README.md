@@ -124,7 +124,10 @@ int main(int argc, char *argv[])
 
     MPI_Request top_request, bottom_request; //request per invio della prima e ultima riga
     MPI_Status status;
-    MPI_Datatype life_row;
+    MPI_Datatype life_row;    
+    MPI_Group world_group; //gruppo primario per la comunicazione
+    MPI_Group new_group;
+    MPI_Comm NEW_MPI_COMM_WORLD; 
 
 }
 ```
@@ -142,6 +145,35 @@ Successivamente dichiaro un tipo MPI contigous derivato chiamato life_row. Fonda
 ```c
 MPI_Type_contiguous(col, MPI_C_BOOL, &life_row);
 MPI_Type_commit(&life_row);
+```
+
+Se il numero di processi in uso è maggiore del numero di righe c'è bisogno di eliminare i processi in eccesso. Semplicemente, in caso affermativo, creo un nuovo comunicatore contenente soltanto i processi necessari; in caso contrario creo un comunicatore con il numero di processi specificati in input.
+
+```c
+if(comm_size > row){
+        
+        int new_rank[row];
+
+        for(int i = 0; i < row; i++)
+            new_rank[i] = i;
+
+        //creo un nuovo gruppo con i soli processi di cui ho bisogno
+        MPI_Group_incl(world_group, row, new_rank, &new_group);
+
+        //creo il nuovo comunicatore
+        MPI_Comm_create(MPI_COMM_WORLD, new_group, &NEW_MPI_COMM_WORLD);
+    }
+    else
+    {
+        MPI_Comm_create(MPI_COMM_WORLD, world_group, &NEW_MPI_COMM_WORLD);
+    }
+
+    if (NEW_MPI_COMM_WORLD == MPI_COMM_NULL)
+    {
+        // elimino i processi in eccesso
+        MPI_Finalize();
+        exit(0);
+    }
 ```
 
 A tal punto il processo MASTER (rank 0) inizializza la matrice e la popola in maniera pseudocasuale. Tramite la random verrà generato un numero compreso tra 0 e 1:
