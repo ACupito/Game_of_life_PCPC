@@ -83,15 +83,47 @@ int main(int argc, char *argv[])
     MPI_Request top_request, bottom_request; //request per invio della prima e ultima riga
     MPI_Status status;
     MPI_Datatype life_row;
+    MPI_Group world_group; //gruppo primario per la comunicazione
+    MPI_Group new_group;
+    MPI_Comm NEW_MPI_COMM_WORLD; 
 
     MPI_Init(&argc, &argv);
 
     //dichiaro un tipo derivato da usare per comunicare i dati ai processi, mi serve perchè io devo inviare le righe intere ai vari processi
     MPI_Type_contiguous(col, MPI_C_BOOL, &life_row);
     MPI_Type_commit(&life_row);
-
+    
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+    
+    if(comm_size > row){
+        
+        int new_rank[row];
+
+        for(int i = 0; i < row; i++)
+            new_rank[i] = i;
+
+        //creo un nuovo gruppo con i soli processi di cui ho bisogno
+        MPI_Group_incl(world_group, row, new_rank, &new_group);
+
+        //creo il nuovo comunicatore
+        MPI_Comm_create(MPI_COMM_WORLD, new_group, &NEW_MPI_COMM_WORLD);
+    }
+    else
+    {
+        MPI_Comm_create(MPI_COMM_WORLD, world_group, &NEW_MPI_COMM_WORLD);
+    }
+
+    if (NEW_MPI_COMM_WORLD == MPI_COMM_NULL)
+    {
+        // elimino i processi in eccesso
+        MPI_Finalize();
+        exit(0);
+    }
+
+    MPI_Comm_rank(NEW_MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(NEW_MPI_COMM_WORLD, &comm_size); 
 
     //inizializzo il seed della rand
     srand(time(NULL) + my_rank);
@@ -166,7 +198,7 @@ int main(int argc, char *argv[])
     while (steps < generations)
     {
         //invio ad ogni processo le righe che gli spettano per il calcolo
-        MPI_Scatterv(matrix, send_counts, displacements, life_row, rec_buf, send_counts[my_rank], life_row, 0, MPI_COMM_WORLD);
+        MPI_Scatterv(matrix, send_counts, displacements, life_row, rec_buf, send_counts[my_rank], life_row, 0, NEW_MPI_COMM_WORLD);
 
         //numero di righe per processo
         int rowsNumber = send_counts[my_rank];
@@ -175,21 +207,21 @@ int main(int argc, char *argv[])
         if (prev != next)
         {
             //invio la prima riga della matrice ricevuta al mio predecessore
-            MPI_Isend(rec_buf, 1, life_row, prev, 1, MPI_COMM_WORLD, &top_request);
+            MPI_Isend(rec_buf, 1, life_row, prev, 1, NEW_MPI_COMM_WORLD, &top_request);
             //invio l'ultima riga al mio successore
-            MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, next, 1, MPI_COMM_WORLD, &bottom_request);
+            MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, next, 1, NEW_MPI_COMM_WORLD, &bottom_request);
         }
         else
         {
             //nel caso di uno o due processi devo invertire prima e ultima riga da inviare
-            MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, prev, 1, MPI_COMM_WORLD, &top_request);
-            MPI_Isend(rec_buf, 1, life_row, next, 1, MPI_COMM_WORLD, &bottom_request);
+            MPI_Isend(rec_buf + (col * (rowsNumber - 1)), 1, life_row, prev, 1, NEW_MPI_COMM_WORLD, &top_request);
+            MPI_Isend(rec_buf, 1, life_row, next, 1, NEW_MPI_COMM_WORLD, &bottom_request);
         }
 
         //prendo l'ultima riga del predecessore
-        MPI_Recv(top_row, col, life_row, prev, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(top_row, col, life_row, prev, 1, NEW_MPI_COMM_WORLD, &status);
         //prendo la prima riga del successore
-        MPI_Recv(bottom_row, col, life_row, next, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(bottom_row, col, life_row, next, 1, NEW_MPI_COMM_WORLD, &status);
 
         //per ogni riga che ho
         for (int i = 0; i < rowsNumber; i++)
@@ -291,9 +323,9 @@ int main(int argc, char *argv[])
             }
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(NEW_MPI_COMM_WORLD);
         //gather per ricombinare la matrice, prendo gli elementi dal buffer aggiornato e ricostruisco matrix
-        MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, MPI_COMM_WORLD);
+        MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, NEW_MPI_COMM_WORLD);
 
         //stampa ad ogni generazione della matrice ottenuta
         if (my_rank == 0)
