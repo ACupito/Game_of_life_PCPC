@@ -152,28 +152,28 @@ Se il numero di processi in uso è maggiore del numero di righe c'è bisogno di 
 ```c
 if(comm_size > row){
         
-        int new_rank[row];
+    int new_rank[row];
 
-        for(int i = 0; i < row; i++)
-            new_rank[i] = i;
+    for(int i = 0; i < row; i++)
+        new_rank[i] = i;
 
-        //creo un nuovo gruppo con i soli processi di cui ho bisogno
-        MPI_Group_incl(world_group, row, new_rank, &new_group);
+    //creo un nuovo gruppo con i soli processi di cui ho bisogno
+    MPI_Group_incl(world_group, row, new_rank, &new_group);
 
-        //creo il nuovo comunicatore
-        MPI_Comm_create(MPI_COMM_WORLD, new_group, &NEW_MPI_COMM_WORLD);
-    }
-    else
-    {
-        MPI_Comm_create(MPI_COMM_WORLD, world_group, &NEW_MPI_COMM_WORLD);
-    }
+    //creo il nuovo comunicatore
+    MPI_Comm_create(MPI_COMM_WORLD, new_group, &NEW_MPI_COMM_WORLD);
+}
+else
+{
+    MPI_Comm_create(MPI_COMM_WORLD, world_group, &NEW_MPI_COMM_WORLD);
+}
 
-    if (NEW_MPI_COMM_WORLD == MPI_COMM_NULL)
-    {
-        // elimino i processi in eccesso
-        MPI_Finalize();
-        exit(0);
-    }
+if (NEW_MPI_COMM_WORLD == MPI_COMM_NULL)
+{
+    // elimino i processi in eccesso
+    MPI_Finalize();
+    exit(0);
+}
 ```
 
 A tal punto il processo MASTER (rank 0) inizializza la matrice e la popola in maniera pseudocasuale. Tramite la random verrà generato un numero compreso tra 0 e 1:
