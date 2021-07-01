@@ -438,3 +438,18 @@ Fissato il numero di iterazioni pari a 1, un numero di righe pari a 6 e un numer
 | <img src="images/Sequenziale.png" height="200" /> | <img src="images/2processi.png" height="200" /> | <img src="images/3processi.png" height="200" /> | <img src="images/4processi.png" height="200" /> |
 
 Come è evidente il risultato è il medesimo nonostante la variazione sul numero di processi in uso.
+
+##Valutazione delle prestazioni
+Le prestazioni dell'algoritmo sono state valutate su un cluster AWS di m4.large, composto in totale da 8 istanze per un totale di 16 VCPUs. 
+Al fine di valutare le prestazioni andremo a considerare `Scalabilità forte` e `Scalabilità debole`.
+
+##Scalabilità forte
+###Test 1
+<img width="646" alt="Schermata 2021-07-01 alle 21 06 10" src="https://user-images.githubusercontent.com/40720781/124177189-2bddfd80-dab0-11eb-99fc-105a5280f445.png">
+###Test 2
+<img width="644" alt="Schermata 2021-07-01 alle 21 06 53" src="https://user-images.githubusercontent.com/40720781/124177260-457f4500-dab0-11eb-9e4a-c03e2a906590.png">
+###Test 3
+<img width="660" alt="Schermata 2021-07-01 alle 21 07 30" src="https://user-images.githubusercontent.com/40720781/124177321-5af46f00-dab0-11eb-8d7a-a7cf15d71393.png">
+
+##Scalabilità debole
+<img width="651" alt="Schermata 2021-07-01 alle 21 08 41" src="https://user-images.githubusercontent.com/40720781/124177419-85462c80-dab0-11eb-97f5-0fa03d7f4782.png">
