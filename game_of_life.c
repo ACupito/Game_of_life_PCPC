@@ -323,7 +323,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        MPI_Barrier(NEW_MPI_COMM_WORLD);
         //gather per ricombinare la matrice, prendo gli elementi dal buffer aggiornato e ricostruisco matrix
         MPI_Gatherv(updated_buf, send_counts[my_rank], life_row, matrix, send_counts, displacements, life_row, 0, NEW_MPI_COMM_WORLD);
 
@@ -344,6 +343,8 @@ int main(int argc, char *argv[])
         //incremento il numero di step
         steps++;
     }
+
+    MPI_Barrier(NEW_MPI_COMM_WORLD);
 
     free(rec_buf);
     free(updated_buf);
