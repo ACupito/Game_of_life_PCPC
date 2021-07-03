@@ -443,6 +443,13 @@ Come è evidente il risultato è il medesimo nonostante la variazione sul numero
 Le prestazioni dell'algoritmo sono state valutate su un cluster AWS di m4.large, composto in totale da 8 istanze per un totale di 16 VCPUs. 
 Al fine di valutare le prestazioni andremo a considerare `Scalabilità forte` e `Scalabilità debole`.
 
+- Scalabilità forte: valuta l'accelerazione, in termini di tempo, ottenuta fissando la dimensione del problema e andando a variare il numero di processori in uso. In tal maniera, possiamo comprendere quanto effettivamente l'aumento del numero di processori migliori il tempo di computazione dell'algoritmo. 
+
+- Scalabilità debole: valuta se il tempo per la computazione cresce in modo lineare rispetto alla crescita del carico computazionale. In sostanza, la dimensione del problema cresce di una quantità fissa per ogni processore che si aggiungerà al calcolo.
+
+Per ciò che concerne la valutazione quantitativa dell'algoritmo si è preso in considerazione lo `Speed-Up`, il quale misura l'accelerazione ottenuta eseguendo l'algoritmo su p processori rispetto all'esecuzione su un singolo processore. Idealmente lo speed-up è pari al numero di processori in uso, in realtà questo accade molto raramente e generalmente ci si avvicina soltanto al valore p.
+Ho calcolato lo speed-up con la seguente formula `Sp = Ts/Tp`, dove `Ts` è il tempo di esecuzione su un singolo processore e `Tp` è il tempo di esecuzione con p processori in uso. 
+
 ## Scalabilità forte
 
 ### Test 1
@@ -487,7 +494,7 @@ Rows=3000 Columns=3000 Generations=100
 |---|---|---|---|---|---|---|---|---|
 |Speed-up| 1.21 | 1.94 | 2.31 | 2.81 | 3.20 | 3.38 | 3.39 | 3.52 |
 
-<img width="644" alt="Schermata 2021-07-01 alle 21 06 53" src="https://user-images.githubusercontent.com/40720781/124177260-457f4500-dab0-11eb-9e4a-c03e2a906590.png">
+<img width="638" alt="Schermata 2021-07-03 alle 12 20 18" src="https://user-images.githubusercontent.com/40720781/124351165-09a3c700-dbf9-11eb-8ce5-4172f6eb16aa.png">
 
 ### Test 3
 
@@ -510,6 +517,7 @@ Rows=5000 Columns=5000 Generations=100
 |Speed-up| 1.19 | 1.85 | 2.41 | 2.57 | 2.94 | 3.19 | 3.48 | 3.55 |
 
 <img width="660" alt="Schermata 2021-07-01 alle 21 07 30" src="https://user-images.githubusercontent.com/40720781/124177321-5af46f00-dab0-11eb-8d7a-a7cf15d71393.png">
+
 
 ## Scalabilità debole
 
