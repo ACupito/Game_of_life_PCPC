@@ -180,6 +180,8 @@ A tal punto il processo MASTER (rank 0) inizializza la matrice e la popola in ma
 - se la cella è viva il suo valore è 1
 - se la cella è morta il suo valore è 0
 
+E' bene specificare che la matrice che andremo a gestire è un array di dimensione N * M, tale soluzione è stata pensata poichè utilizzando un array monodimensionale esso verrà caricato interamente in cache, ciò accade poichè C è un linguaggio `row-based`. Quindi, su questa base il tempo di accesso alla risorsa dovrebbe essere più rapido avendo l'intero array direttamente in cache.
+
 ```c
 //inizializzo il seed della rand
 srand(time(NULL) + my_rank);
@@ -521,7 +523,7 @@ Rows=5000 Columns=5000 Generations=100
 
 ## Scalabilità debole
 
-Per la scalabilità debole la taglia del problema non è fissata per tutti i processori. Nel caso specifico si è aumentato di 500 il numero di righe per ogni nuovo processore aggiunto al calcolo.
+Per la scalabilità debole la taglia del problema non è fissata. Nel caso specifico si è aumentato di 500 il numero di righe per ogni nuovo processore aggiunto al calcolo.
 
 | VCPUs | Time(ms) |
 |---|---|
@@ -536,3 +538,8 @@ Per la scalabilità debole la taglia del problema non è fissata per tutti i pro
 | 16 | 7.02 |
 
 <img width="651" alt="Schermata 2021-07-01 alle 21 08 41" src="https://user-images.githubusercontent.com/40720781/124177419-85462c80-dab0-11eb-97f5-0fa03d7f4782.png">
+
+## Considerazioni finali
+Sulla base dei risultati ottenuti possiamo affermare che la soluzione scala anche se generalmente la curva inizia ad appiattirsi dopo il sesto processo. Lo speed-up trova il suo `sweet spot` tra 2 e 4 processi, dove si registra un valore più vicino a quello ideale, mentre dai 4 processi in poi possiamo notare come lo speed-up non subisce un aumento sostanziale allontanandosi di molto dal valore ideale. 
+Sulla base di alcuni test effettuati in locale con la medesima taglia del problema, è possibile affermare che l'overhead di comunicazione causato dall'utilizzo di un cluster remoto è impattante sui tempi di computazione, è quindi fondamentale tenere in considerazione questo particolare nella valutazione delle performance.
+Per ciò che concerne la scalabilità debole è possibile affermare che i tempi di esecuzione non sono del tutto lineari in relazione all'aumento del carico, ma i risultati ottenuti con l'esperimento sono buoni; non si registrano picchi nè in positivo nè in negativo.
