@@ -446,13 +446,85 @@ Al fine di valutare le prestazioni andremo a considerare `Scalabilità forte` e 
 ## Scalabilità forte
 
 ### Test 1
+
+Rows=1000 Columns=1000 Generations=100
+
+| VCPUs | Time(ms) |
+|---|---|
+| 1 | 5.7915 |
+| 2 | 4.8008 |
+| 4 | 3.1730 |
+| 6 | 2.3978 |
+| 8 | 2.1032 |
+| 10 | 2.0711 |
+| 12 | 1.9584 |
+| 14 | 1.8943 |
+| 16 | 1.0959 |
+
+| VCPUs | 2 | 4 | 6 | 8 | 10 | 12 | 14 | 16 |
+|---|---|---|---|---|---|---|---|---|
+|Speed-up| 1.20 | 1.82 | 2.41 | 2.75 | 2.79 | 2.95 | 3.05 | 5.28 |
+
 <img width="646" alt="Schermata 2021-07-01 alle 21 06 10" src="https://user-images.githubusercontent.com/40720781/124177189-2bddfd80-dab0-11eb-99fc-105a5280f445.png">
 
 ### Test 2
+
+Rows=3000 Columns=3000 Generations=100
+
+| VCPUs | Time(ms) |
+|---|---|
+| 1 | 52.5155 |
+| 2 | 43.3686 |
+| 4 | 26.9365 |
+| 6 | 22.6511 |
+| 8 | 18.6486 |
+| 10 | 16.3743 |
+| 12 | 15.5045 |
+| 14 | 15.4721 |
+| 16 | 14.9033 |
+
+| VCPUs | 2 | 4 | 6 | 8 | 10 | 12 | 14 | 16 |
+|---|---|---|---|---|---|---|---|---|
+|Speed-up| 1.21 | 1.94 | 2.31 | 2.81 | 3.20 | 3.38 | 3.39 | 3.52 |
+
 <img width="644" alt="Schermata 2021-07-01 alle 21 06 53" src="https://user-images.githubusercontent.com/40720781/124177260-457f4500-dab0-11eb-9e4a-c03e2a906590.png">
 
 ### Test 3
+
+Rows=5000 Columns=5000 Generations=100
+
+| VCPUs | Time(ms) |
+|---|---|
+| 1 | 145.6951 |
+| 2 | 121.6345 |
+| 4 | 78.5341 |
+| 6 | 60.2319 |
+| 8 | 56.6654 |
+| 10 | 49.5241 |
+| 12 | 45.5614 |
+| 14 | 41.8683 |
+| 16 | 40.9444 |
+
+| VCPUs | 2 | 4 | 6 | 8 | 10 | 12 | 14 | 16 |
+|---|---|---|---|---|---|---|---|---|
+|Speed-up| 1.19 | 1.85 | 2.41 | 2.57 | 2.94 | 3.19 | 3.48 | 3.55 |
+
 <img width="660" alt="Schermata 2021-07-01 alle 21 07 30" src="https://user-images.githubusercontent.com/40720781/124177321-5af46f00-dab0-11eb-8d7a-a7cf15d71393.png">
 
 ## Scalabilità debole
+
+Per la scalabilità debole la taglia del problema non è fissata per tutti i processori. Nel caso specifico si è aumentato di 500 il numero di righe per ogni nuovo processore aggiunto al calcolo.
+
+| VCPUs | Time(ms) |
+|---|---|
+| 1 | 1.44 |
+| 2 | 2.39 |
+| 4 | 3.16 |
+| 6 | 3.54 |
+| 8 | 4.14 |
+| 10 | 5.07 |
+| 12 | 5.39 |
+| 14 | 6.49 |
+| 16 | 7.02 |
+
 <img width="651" alt="Schermata 2021-07-01 alle 21 08 41" src="https://user-images.githubusercontent.com/40720781/124177419-85462c80-dab0-11eb-97f5-0fa03d7f4782.png">
